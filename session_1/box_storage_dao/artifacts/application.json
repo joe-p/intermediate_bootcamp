@@ -1,0 +1,82 @@
+{
+    "hints": {
+        "add_proposal(string)void": {
+            "call_config": {
+                "no_op": "CALL"
+            }
+        },
+        "support(address)void": {
+            "call_config": {
+                "no_op": "CALL"
+            }
+        }
+    },
+    "source": {
+        "approval": "I3ByYWdtYSB2ZXJzaW9uIDgKaW50Y2Jsb2NrIDAgMQpieXRlY2Jsb2NrIDB4NzAyZCAweDc3Njk2ZTZlNjk2ZTY3NWY3MDcyNmY3MDZmNzM2MTZjNWY3NjZmNzQ2NTczIDB4NzYyZCAweDc3Njk2ZTZlNjk2ZTY3NWY3MDcyNmY3MDZmNzM2MTZjIDB4NjgyZAp0eG4gTnVtQXBwQXJncwppbnRjXzAgLy8gMAo9PQpibnogbWFpbl9sNgp0eG5hIEFwcGxpY2F0aW9uQXJncyAwCnB1c2hieXRlcyAweDg4NWRlMjdmIC8vICJhZGRfcHJvcG9zYWwoc3RyaW5nKXZvaWQiCj09CmJueiBtYWluX2w1CnR4bmEgQXBwbGljYXRpb25BcmdzIDAKcHVzaGJ5dGVzIDB4MjdiNjg4OTIgLy8gInN1cHBvcnQoYWRkcmVzcyl2b2lkIgo9PQpibnogbWFpbl9sNAplcnIKbWFpbl9sNDoKdHhuIE9uQ29tcGxldGlvbgppbnRjXzAgLy8gTm9PcAo9PQp0eG4gQXBwbGljYXRpb25JRAppbnRjXzAgLy8gMAohPQomJgphc3NlcnQKdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMQpjYWxsc3ViIHN1cHBvcnRfMgppbnRjXzEgLy8gMQpyZXR1cm4KbWFpbl9sNToKdHhuIE9uQ29tcGxldGlvbgppbnRjXzAgLy8gTm9PcAo9PQp0eG4gQXBwbGljYXRpb25JRAppbnRjXzAgLy8gMAohPQomJgphc3NlcnQKdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMQpjYWxsc3ViIGFkZHByb3Bvc2FsXzEKaW50Y18xIC8vIDEKcmV0dXJuCm1haW5fbDY6CnR4biBPbkNvbXBsZXRpb24KaW50Y18wIC8vIE5vT3AKPT0KYm56IG1haW5fbDgKZXJyCm1haW5fbDg6CnR4biBBcHBsaWNhdGlvbklECmludGNfMCAvLyAwCj09CmFzc2VydApjYWxsc3ViIGNyZWF0ZV8wCmludGNfMSAvLyAxCnJldHVybgoKLy8gY3JlYXRlCmNyZWF0ZV8wOgpwcm90byAwIDAKYnl0ZWNfMyAvLyAid2lubmluZ19wcm9wb3NhbCIKcHVzaGJ5dGVzIDB4IC8vICIiCmFwcF9nbG9iYWxfcHV0CmJ5dGVjXzEgLy8gIndpbm5pbmdfcHJvcG9zYWxfdm90ZXMiCmludGNfMCAvLyAwCmFwcF9nbG9iYWxfcHV0CnJldHN1YgoKLy8gYWRkX3Byb3Bvc2FsCmFkZHByb3Bvc2FsXzE6CnByb3RvIDEgMApieXRlY18wIC8vICJwLSIKdHhuIFNlbmRlcgpjb25jYXQKYm94X2xlbgpzdG9yZSAxCnN0b3JlIDAKbG9hZCAxCmludGNfMCAvLyAwCj09CmFzc2VydApieXRlY18wIC8vICJwLSIKdHhuIFNlbmRlcgpjb25jYXQKYm94X2RlbApwb3AKYnl0ZWNfMCAvLyAicC0iCnR4biBTZW5kZXIKY29uY2F0CmZyYW1lX2RpZyAtMQpib3hfcHV0CnJldHN1YgoKLy8gc3VwcG9ydApzdXBwb3J0XzI6CnByb3RvIDEgMAppbnRjXzAgLy8gMApkdXBuIDIKYnl0ZWNfMCAvLyAicC0iCnR4biBTZW5kZXIKY29uY2F0CmJveF9sZW4Kc3RvcmUgMwpzdG9yZSAyCmxvYWQgMwppbnRjXzAgLy8gMAo9PQphc3NlcnQKYnl0ZWNfMiAvLyAidi0iCmZyYW1lX2RpZyAtMQpjb25jYXQKYm94X2dldApzdG9yZSA1CnN0b3JlIDQKbG9hZCA1CmFzc2VydApsb2FkIDQKYnRvaQpmcmFtZV9idXJ5IDEKZnJhbWVfZGlnIDEKaW50Y18xIC8vIDEKKwpmcmFtZV9idXJ5IDAKYnl0ZWNfMiAvLyAidi0iCmZyYW1lX2RpZyAtMQpjb25jYXQKYm94X2RlbApwb3AKYnl0ZWNfMiAvLyAidi0iCmZyYW1lX2RpZyAtMQpjb25jYXQKZnJhbWVfZGlnIDAKaXRvYgpib3hfcHV0CmZyYW1lX2RpZyAwCmJ5dGVjXzEgLy8gIndpbm5pbmdfcHJvcG9zYWxfdm90ZXMiCmFwcF9nbG9iYWxfZ2V0Cj4KYnogc3VwcG9ydF8yX2wyCmJ5dGVjXzEgLy8gIndpbm5pbmdfcHJvcG9zYWxfdm90ZXMiCmZyYW1lX2RpZyAwCmFwcF9nbG9iYWxfcHV0CmJ5dGVjXzMgLy8gIndpbm5pbmdfcHJvcG9zYWwiCmZyYW1lX2RpZyAtMQphcHBfZ2xvYmFsX3B1dApzdXBwb3J0XzJfbDI6CmludGNfMSAvLyAxCmZyYW1lX2J1cnkgMgpieXRlYyA0IC8vICJoLSIKdHhuIFNlbmRlcgpjb25jYXQKYm94X2RlbApwb3AKYnl0ZWMgNCAvLyAiaC0iCnR4biBTZW5kZXIKY29uY2F0CnB1c2hieXRlcyAweDAwIC8vIDB4MDAKaW50Y18wIC8vIDAKZnJhbWVfZGlnIDIKc2V0Yml0CmJveF9wdXQKcmV0c3Vi",
+        "clear": "I3ByYWdtYSB2ZXJzaW9uIDgKcHVzaGludCAwIC8vIDAKcmV0dXJu"
+    },
+    "state": {
+        "global": {
+            "num_byte_slices": 1,
+            "num_uints": 1
+        },
+        "local": {
+            "num_byte_slices": 0,
+            "num_uints": 0
+        }
+    },
+    "schema": {
+        "global": {
+            "declared": {
+                "winning_proposal": {
+                    "type": "bytes",
+                    "key": "winning_proposal",
+                    "descr": ""
+                },
+                "winning_proposal_votes": {
+                    "type": "uint64",
+                    "key": "winning_proposal_votes",
+                    "descr": ""
+                }
+            },
+            "reserved": {}
+        },
+        "local": {
+            "declared": {},
+            "reserved": {}
+        }
+    },
+    "contract": {
+        "name": "BoxStorageDAO",
+        "methods": [
+            {
+                "name": "add_proposal",
+                "args": [
+                    {
+                        "type": "string",
+                        "name": "desc"
+                    }
+                ],
+                "returns": {
+                    "type": "void"
+                }
+            },
+            {
+                "name": "support",
+                "args": [
+                    {
+                        "type": "address",
+                        "name": "proposer"
+                    }
+                ],
+                "returns": {
+                    "type": "void"
+                }
+            }
+        ],
+        "networks": {}
+    },
+    "bare_call_config": {
+        "no_op": "CREATE"
+    }
+}
