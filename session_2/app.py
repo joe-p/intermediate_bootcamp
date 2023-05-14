@@ -1,6 +1,16 @@
+from typing import Literal
+
 from beaker import *
 from beaker.lib.storage import BoxMapping
 from pyteal import *
+
+
+class NFTProposal(abi.NamedTuple):
+    url: abi.Field[abi.String]
+    metadata_hash: abi.Field[abi.StaticArray[abi.Byte, Literal[32]]]
+    name: abi.Field[abi.String]
+    unit_name: abi.Field[abi.String]
+    reserve: abi.Field[abi.Address]
 
 
 class DAOState:
@@ -14,7 +24,7 @@ class DAOState:
     # Box Storage
     proposals = BoxMapping(
         key_type=abi.Tuple2[abi.Address, abi.Uint64],
-        value_type=abi.String,
+        value_type=NFTProposal,
         prefix=Bytes("p-"),
     )
 
@@ -38,7 +48,7 @@ def create() -> Expr:
 
 
 @app.external
-def add_proposal(desc: abi.String, proposal_id: abi.Uint64) -> Expr:
+def add_proposal(proposal: NFTProposal, proposal_id: abi.Uint64) -> Expr:
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
     addr = abi.Address()
 
@@ -48,7 +58,7 @@ def add_proposal(desc: abi.String, proposal_id: abi.Uint64) -> Expr:
         # Check if the proposal already exists
         Assert(app.state.proposals[proposal_key].exists() == Int(0)),
         # Not using .get() here because desc is already a abi.String
-        app.state.proposals[Txn.sender()].set(desc),
+        app.state.proposals[Txn.sender()].set(proposal),
     )
 
 
@@ -58,7 +68,6 @@ def support(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
     current_votes = abi.Uint64()
     true_value = abi.Bool()
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
-
 
     return Seq(
         proposal_key.set(proposer, proposal_id),
@@ -75,8 +84,36 @@ def support(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
             app.state.winning_proposal.set(proposal_key.encode()),
         ),
         # Set has_voted to true
-        true_value.set(True),
+        true_value.set(value=True),
         app.state.has_voted[Txn.sender()].set(true_value),
+    )
+
+
+@app.external
+def mint_nft(proposal_key: abi.Tuple2[abi.Address, abi.Uint64]) -> Expr:
+    proposal = NFTProposal()
+    name = abi.String()
+    unit_name = abi.String()
+    reserve = abi.Address()
+    url = abi.String()
+    metadata_hash = abi.make(abi.StaticArray[abi.Byte, Literal[32]])
+
+    return Seq(
+        app.state.proposals[proposal_key].store_into(proposal),
+        name.set(proposal.name),
+        unit_name.set(proposal.unit_name),
+        reserve.set(proposal.reserve),
+        InnerTxnBuilder.Execute(
+            {
+                TxnField.type_enum: TxnType.AssetConfig,
+                TxnField.config_asset_name: name.get(),
+                TxnField.config_asset_unit_name: unit_name.get(),
+                TxnField.config_asset_reserve: reserve.get(),
+                TxnField.config_asset_url: url.get(),
+                TxnField.config_asset_metadata_hash: metadata_hash.encode(),
+                TxnField.fee: Int(0),
+            }
+        ),
     )
 
 

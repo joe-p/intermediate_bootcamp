@@ -1,20 +1,37 @@
 #pragma version 8
-intcblock 0 1
+intcblock 0 1 36
 bytecblock 0x 0x702d 0x77696e6e696e675f70726f706f73616c5f766f746573 0x762d 0x77696e6e696e675f70726f706f73616c 0x682d
 txn NumAppArgs
 intc_0 // 0
 ==
-bnz main_l6
+bnz main_l8
 txna ApplicationArgs 0
-pushbytes 0x4f592335 // "add_proposal(string,uint64)void"
+pushbytes 0xb110c2cd // "add_proposal((string,byte[32],string,string,address),uint64)void"
 ==
-bnz main_l5
+bnz main_l7
 txna ApplicationArgs 0
 pushbytes 0x6310549b // "support(address,uint64)void"
 ==
-bnz main_l4
+bnz main_l6
+txna ApplicationArgs 0
+pushbytes 0x50bb5704 // "mint_nft((address,uint64))void"
+==
+bnz main_l5
 err
-main_l4:
+main_l5:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+callsub mintnft_3
+intc_1 // 1
+return
+main_l6:
 txn OnCompletion
 intc_0 // NoOp
 ==
@@ -33,7 +50,7 @@ load 3
 callsub support_2
 intc_1 // 1
 return
-main_l5:
+main_l7:
 txn OnCompletion
 intc_0 // NoOp
 ==
@@ -52,13 +69,13 @@ load 1
 callsub addproposal_1
 intc_1 // 1
 return
-main_l6:
+main_l8:
 txn OnCompletion
 intc_0 // NoOp
 ==
-bnz main_l8
+bnz main_l10
 err
-main_l8:
+main_l10:
 txn ApplicationID
 intc_0 // 0
 ==
@@ -199,4 +216,60 @@ intc_0 // 0
 frame_dig 2
 setbit
 box_put
+retsub
+
+// mint_nft
+mintnft_3:
+proto 1 0
+bytec_0 // ""
+dupn 5
+bytec_1 // "p-"
+frame_dig -1
+concat
+box_get
+store 11
+store 10
+load 11
+assert
+load 10
+frame_bury 0
+frame_dig 0
+frame_dig 0
+pushint 34 // 34
+extract_uint16
+frame_dig 0
+intc_2 // 36
+extract_uint16
+substring3
+frame_bury 1
+frame_dig 0
+frame_dig 0
+intc_2 // 36
+extract_uint16
+dig 1
+len
+substring3
+frame_bury 2
+frame_dig 0
+extract 38 32
+frame_bury 3
+itxn_begin
+pushint 3 // acfg
+itxn_field TypeEnum
+frame_dig 1
+extract 2 0
+itxn_field ConfigAssetName
+frame_dig 2
+extract 2 0
+itxn_field ConfigAssetUnitName
+frame_dig 3
+itxn_field ConfigAssetReserve
+frame_dig 4
+extract 2 0
+itxn_field ConfigAssetURL
+frame_dig 5
+itxn_field ConfigAssetMetadataHash
+intc_0 // 0
+itxn_field Fee
+itxn_submit
 retsub

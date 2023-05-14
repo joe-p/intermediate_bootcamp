@@ -5,8 +5,8 @@
             "name": "add_proposal",
             "args": [
                 {
-                    "type": "string",
-                    "name": "desc"
+                    "type": "(string,byte[32],string,string,address)",
+                    "name": "proposal"
                 },
                 {
                     "type": "uint64",
@@ -27,6 +27,18 @@
                 {
                     "type": "uint64",
                     "name": "proposal_id"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            }
+        },
+        {
+            "name": "mint_nft",
+            "args": [
+                {
+                    "type": "(address,uint64)",
+                    "name": "proposal_key"
                 }
             ],
             "returns": {
