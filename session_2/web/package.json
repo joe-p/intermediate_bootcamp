@@ -9,7 +9,7 @@
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",
     "watch": "webpack --watch",
-    "serve": "webpack serve",
+    "serve": "poetry run python ../app.py && webpack serve",
     "lint": "eslint src --ext ts",
     "fix": "eslint src --ext ts --fix"
   },
@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@algorandfoundation/algokit-utils": "^1.1.1",
     "@json-rpc-tools/utils": "^1.7.6",
     "@perawallet/connect": "^1.2.2",
     "@walletconnect/client": "^1.7.8",

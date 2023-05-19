@@ -6,7 +6,7 @@ intc_0 // 0
 ==
 bnz main_l8
 txna ApplicationArgs 0
-pushbytes 0xb110c2cd // "add_proposal((string,byte[32],string,string,address),uint64)void"
+pushbytes 0x373b154d // "add_proposal((string,byte[32],string,string,address),uint64,pay)void"
 ==
 bnz main_l7
 txna ApplicationArgs 0
@@ -41,12 +41,12 @@ intc_0 // 0
 &&
 assert
 txna ApplicationArgs 1
-store 2
+store 3
 txna ApplicationArgs 2
 btoi
-store 3
-load 2
+store 4
 load 3
+load 4
 callsub support_2
 intc_1 // 1
 return
@@ -64,8 +64,18 @@ store 0
 txna ApplicationArgs 2
 btoi
 store 1
+txn GroupIndex
+intc_1 // 1
+-
+store 2
+load 2
+gtxns TypeEnum
+intc_1 // pay
+==
+assert
 load 0
 load 1
+load 2
 callsub addproposal_1
 intc_1 // 1
 return
@@ -97,13 +107,18 @@ retsub
 
 // add_proposal
 addproposal_1:
-proto 2 0
+proto 3 0
 bytec_0 // ""
 dup
 intc_0 // 0
 dup
 bytec_0 // ""
 dup
+frame_dig -1
+gtxns Receiver
+global CurrentApplicationAddress
+==
+assert
 txn Sender
 frame_bury 1
 frame_dig 1
@@ -112,7 +127,7 @@ pushint 32 // 32
 ==
 assert
 frame_dig 1
-frame_dig -1
+frame_dig -2
 itob
 concat
 frame_bury 0
@@ -120,21 +135,21 @@ bytec_1 // "p-"
 frame_dig 0
 concat
 box_len
+store 6
 store 5
-store 4
-load 5
+load 6
 intc_0 // 0
 ==
 assert
 bytec_1 // "p-"
-txn Sender
+frame_dig 0
 concat
 box_del
 pop
 bytec_1 // "p-"
-txn Sender
+frame_dig 0
 concat
-frame_dig -2
+frame_dig -3
 box_put
 retsub
 
@@ -157,9 +172,9 @@ bytec_1 // "p-"
 txn Sender
 concat
 box_len
+store 8
 store 7
-store 6
-load 7
+load 8
 intc_0 // 0
 ==
 assert
@@ -167,11 +182,11 @@ bytec_3 // "v-"
 frame_dig 3
 concat
 box_get
+store 10
 store 9
-store 8
-load 9
+load 10
 assert
-load 8
+load 9
 btoi
 frame_bury 1
 frame_dig 1
@@ -227,11 +242,11 @@ bytec_1 // "p-"
 frame_dig -1
 concat
 box_get
+store 12
 store 11
-store 10
-load 11
+load 12
 assert
-load 10
+load 11
 frame_bury 0
 frame_dig 0
 frame_dig 0

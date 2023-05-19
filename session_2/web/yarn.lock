@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@algorandfoundation/algokit-utils@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@algorandfoundation/algokit-utils/-/algokit-utils-1.1.1.tgz#0d342c7e6fc355d60aef5ce5a341504c7a4968a6"
+  integrity sha512-Gcr7XBkw61VBJ9M6ySiRzZJYoMBumVK/F6pqye4n0imEBUIIKYdeEXvB7w+OC3AjGMtpbhe5Gn4WbYvh8IF57g==
+  dependencies:
+    algosdk "^2.2.0"
+    buffer "^6.0.3"
+
 "@ampproject/remapping@^2.2.0":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.2.1.tgz#99e8e11851128b8702cd57c33684f1d0f260b630"

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from beaker import *
@@ -48,17 +49,27 @@ def create() -> Expr:
 
 
 @app.external
-def add_proposal(proposal: NFTProposal, proposal_id: abi.Uint64) -> Expr:
+def add_proposal(
+    proposal: NFTProposal, proposal_id: abi.Uint64, mbr_payment: abi.PaymentTransaction
+) -> Expr:
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
     addr = abi.Address()
 
     return Seq(
+        # Assert MBR payment is going to the contract
+        Assert(mbr_payment.get().receiver() == Global.current_application_address()),
+        # Get current MBR before adding proposal
+        #pre_mbr := AccountParam.minBalance(Global.current_application_address()),
+        # Set proposal key
         addr.set(Txn.sender()),
         proposal_key.set(addr, proposal_id),
         # Check if the proposal already exists
         Assert(app.state.proposals[proposal_key].exists() == Int(0)),
         # Not using .get() here because desc is already a abi.String
-        app.state.proposals[Txn.sender()].set(proposal),
+        app.state.proposals[proposal_key].set(proposal),
+        # Verify payment covers MBR difference
+        #current_mbr := AccountParam.minBalance(Global.current_application_address()),
+        #Assert(mbr_payment.get().amount() == current_mbr.value() - pre_mbr.value()),
     )
 
 
@@ -118,4 +129,4 @@ def mint_nft(proposal_key: abi.Tuple2[abi.Address, abi.Uint64]) -> Expr:
 
 
 if __name__ == "__main__":
-    app.build().export("./artifacts")
+    app.build().export(Path(__file__).resolve().parent / "./artifacts")
