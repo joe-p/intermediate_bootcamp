@@ -6,6 +6,9 @@ const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
 const webpack = require('webpack');
 
 const isProduction = process.env.NODE_ENV === 'production';
+const network = process.env.NETWORK || 'localnet';
+
+if (!['localnet', 'testnet'].includes(network)) throw new Error('Invalid NETWORK, must be localnet or testnet');
 
 const config = {
   entry: './src/index.ts',
@@ -23,6 +26,7 @@ const config = {
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
     }),
+    new webpack.DefinePlugin({ NETWORK: JSON.stringify(network) }),
 
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/

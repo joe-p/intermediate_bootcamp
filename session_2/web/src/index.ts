@@ -4,12 +4,16 @@ import algosdk from 'algosdk';
 import appspec from '../../artifacts/application.json';
 import PeraSession from './wallets/pera';
 
+declare let NETWORK : 'localnet' | 'testnet';
+
 const BOX_CREATE_COST = 0.0025e6;
 const BOX_BYTE_COST = 0.0004e6;
 
 const pera = new PeraSession();
-const algodClient = algokit.getAlgoClient(algokit.getAlgoNodeConfig('testnet', 'algod'));
-const indexerClient = algokit.getAlgoIndexerClient(algokit.getAlgoNodeConfig('testnet', 'indexer'));
+
+const algodClient = algokit.getAlgoClient(NETWORK === 'localnet' ? algokit.getDefaultLocalNetConfig('algod') : algokit.getAlgoNodeConfig('testnet', 'algod'));
+const indexerClient = algokit.getAlgoIndexerClient(NETWORK === 'localnet' ? algokit.getDefaultLocalNetConfig('indexer') : algokit.getAlgoNodeConfig('testnet', 'indexer'));
+const kmdClient = NETWORK === 'localnet' ? new algosdk.Kmd('a'.repeat(64), 'http://localhost', 4002) : undefined;
 
 let daoAppId: number;
 let daoApp: ApplicationClient;
@@ -29,15 +33,26 @@ buttonIds.forEach((id) => {
 });
 
 async function signer(txns: algosdk.Transaction[]) {
+  if (NETWORK === 'localnet') {
+    const acct = await algokit.getDispenserAccount(algodClient, kmdClient);
+    return algosdk.makeBasicAccountTransactionSigner(acct)(txns, txns.map((_, i) => i));
+  }
+
   return pera.signTxns(txns);
 }
 
 buttons.connect.onclick = async () => {
-  await pera.getAccounts();
+  if (NETWORK === 'localnet') {
+    const acct = await algokit.getDispenserAccount(algodClient, kmdClient);
+    accountsMenu.add(new Option(acct.addr, acct.addr));
+  } else {
+    await pera.getAccounts();
+    pera.accounts.forEach((account) => {
+      accountsMenu.add(new Option(account, account));
+    });
+  }
+
   buttons.create.disabled = false;
-  pera.accounts.forEach((account) => {
-    accountsMenu.add(new Option(account, account));
-  });
 };
 
 buttons.create.onclick = async () => {
@@ -61,7 +76,7 @@ buttons.create.onclick = async () => {
 
   daoAppId = appId;
 
-  document.getElementById('status').innerHTML = `App created with id ${appId} and address ${appAddress} in tx ${transaction.txID()}. See it <a href='https://testnet.algoscan.app/app/${appId}'>here</a>`;
+  document.getElementById('status').innerHTML = `App created with id ${appId} and address ${appAddress} in tx ${transaction.txID()}. See it <a href='https://app.dappflow.org/explorer/application/${appId}'>here</a>`;
 
   buttons.submit.disabled = false;
   buttons.create.disabled = true;
@@ -82,15 +97,19 @@ buttons.submit.onclick = async () => {
     reserve: reserveInput.value,
   };
 
-
   // TODO get current proposal ID
   const proposalId = 0;
 
-  const proposalKeyType = algosdk.ABIType.from('(address,uint64)')
-  const proposalKeyPrefix = new Uint8Array(Buffer.from("p-"))
-  const proposalKey = new Uint8Array([...proposalKeyPrefix, ...proposalKeyType.encode([sender.addr, proposalId])])
+  const proposalKeyType = algosdk.ABIType.from('(address,uint64)');
+  const proposalKeyPrefix = new Uint8Array(Buffer.from('p-'));
+  const proposalKey = new Uint8Array([
+    ...proposalKeyPrefix,
+    ...proposalKeyType.encode([sender.addr, proposalId]),
+  ]);
 
-  const boxMbr = (proposalObject.url.length + proposalObject.hash.byteLength + proposalObject.name.length + proposalObject.unitName.length + proposalObject.reserve.length + proposalKey.byteLength) * BOX_BYTE_COST + BOX_CREATE_COST
+  const boxMbr = BOX_CREATE_COST + (Object.values(proposalObject)
+    .reduce((totalLength, v) => totalLength + v.length, 0) + proposalKey.byteLength
+  ) * BOX_BYTE_COST;
 
   const payment = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     suggestedParams: await algodClient.getTransactionParams().do(),
@@ -98,14 +117,14 @@ buttons.submit.onclick = async () => {
     from: sender.addr,
     to: algosdk.getApplicationAddress(daoAppId),
   });
-  
-  const args = [Object.values(proposalObject), proposalId, { txn: payment, signer }]
+
+  const args = [Object.values(proposalObject), proposalId, { txn: payment, signer }];
 
   await daoApp.call({
     method: 'add_proposal',
-    methodArgs: { args, boxes: [ { appIndex: 0, name: proposalKey } ] },
+    methodArgs: { args, boxes: [{ appIndex: 0, name: proposalKey }] },
     sender,
   });
 
-  document.getElementById('status').innerHTML = `Proposal submitted! See the app <a href='https://testnet.algoscan.app/app/${daoAppId}'>here</a>`;
+  document.getElementById('status').innerHTML = `Proposal submitted! See the app <a href='https://app.dappflow.org/explorer/application/${daoAppId}'>here</a>`;
 };
