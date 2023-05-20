@@ -25,8 +25,10 @@ const hashInput = document.getElementById('hash') as HTMLInputElement;
 const nameInput = document.getElementById('name') as HTMLInputElement;
 const unitNameInput = document.getElementById('unit') as HTMLInputElement;
 const reserveInput = document.getElementById('reserve') as HTMLInputElement;
+const proposerInput = document.getElementById('proposer') as HTMLInputElement;
+const idInput = document.getElementById('id') as HTMLInputElement
 
-const buttonIds = ['connect', 'create', 'submit'];
+const buttonIds = ['connect', 'create', 'submit', 'vote'];
 const buttons: { [key: string]: HTMLButtonElement } = {};
 buttonIds.forEach((id) => {
   buttons[id] = document.getElementById(id) as HTMLButtonElement;
@@ -79,6 +81,7 @@ buttons.create.onclick = async () => {
   document.getElementById('status').innerHTML = `App created with id ${appId} and address ${appAddress} in tx ${transaction.txID()}. See it <a href='https://app.dappflow.org/explorer/application/${appId}'>here</a>`;
 
   buttons.submit.disabled = false;
+  buttons.vote.disabled = false;
   buttons.create.disabled = true;
 };
 
@@ -120,6 +123,8 @@ buttons.submit.onclick = async () => {
 
   const args = [Object.values(proposalObject), proposalId, { txn: payment, signer }];
 
+  proposerInput.value = sender.addr
+
   await daoApp.call({
     method: 'add_proposal',
     methodArgs: { args, boxes: [{ appIndex: 0, name: proposalKey }] },
@@ -128,3 +133,41 @@ buttons.submit.onclick = async () => {
 
   document.getElementById('status').innerHTML = `Proposal submitted! See the app <a href='https://app.dappflow.org/explorer/application/${daoAppId}'>here</a>`;
 };
+
+buttons.vote.onclick = async () => {
+  const sender = {
+    addr: accountsMenu.selectedOptions[0].value,
+    signer,
+  };
+
+  const proposalKeyType = algosdk.ABIType.from('(address,uint64)');
+  const encodedKey = proposalKeyType.encode([sender.addr, idInput.valueAsNumber])
+  const proposalKey = new Uint8Array([
+    ...new Uint8Array(Buffer.from('p-')),
+    ...encodedKey,
+  ]);
+
+  const votesKey = new Uint8Array([
+    ...new Uint8Array(Buffer.from('v-')),
+    ...encodedKey,
+  ]);
+
+  const hasVotedKey = new Uint8Array([
+    ...new Uint8Array(Buffer.from('h-')),
+    ...algosdk.decodeAddress(sender.addr).publicKey,
+  ]);
+
+  // TODO: Only send this if its the first vote
+  daoApp.fundAppAccount(algokit.microAlgos(33400))
+
+  await daoApp.call({
+    method: 'vote',
+    methodArgs: {args: [proposerInput.value, idInput.valueAsNumber], boxes: [
+      {appIndex: 0, name: proposalKey},
+      {appIndex: 0, name: votesKey},
+      {appIndex: 0, name: hasVotedKey}
+
+    ]},
+    sender
+  })
+}

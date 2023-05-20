@@ -22,7 +22,7 @@
             }
         },
         {
-            "name": "support",
+            "name": "vote",
             "args": [
                 {
                     "type": "address",

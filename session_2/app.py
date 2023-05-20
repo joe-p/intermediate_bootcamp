@@ -74,17 +74,22 @@ def add_proposal(
 
 
 @app.external
-def support(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
+def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
     total_votes = abi.Uint64()
     current_votes = abi.Uint64()
     true_value = abi.Bool()
+    zero_val = abi.Uint64()
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
 
     return Seq(
+        zero_val.set(Int(0)),
         proposal_key.set(proposer, proposal_id),
         # Make sure we haven't voted yet
-        Assert(app.state.proposals[Txn.sender()].exists() == Int(0)),
+        Assert(app.state.has_voted[Txn.sender()].exists() == Int(0)),
         # Get current vote count
+        If(app.state.votes[proposal_key].exists() == Int(0)).Then(
+            app.state.votes[proposal_key].set(zero_val)
+        ),
         app.state.votes[proposal_key].store_into(current_votes),
         # Increment and save total vote count
         total_votes.set(current_votes.get() + Int(1)),

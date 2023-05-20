@@ -1,6 +1,6 @@
 #pragma version 8
 intcblock 0 1 36
-bytecblock 0x 0x702d 0x77696e6e696e675f70726f706f73616c5f766f746573 0x762d 0x77696e6e696e675f70726f706f73616c 0x682d
+bytecblock 0x 0x762d 0x702d 0x77696e6e696e675f70726f706f73616c5f766f746573 0x682d 0x77696e6e696e675f70726f706f73616c
 txn NumAppArgs
 intc_0 // 0
 ==
@@ -10,7 +10,7 @@ pushbytes 0x373b154d // "add_proposal((string,byte[32],string,string,address),ui
 ==
 bnz main_l7
 txna ApplicationArgs 0
-pushbytes 0x6310549b // "support(address,uint64)void"
+pushbytes 0x8866f0b7 // "vote(address,uint64)void"
 ==
 bnz main_l6
 txna ApplicationArgs 0
@@ -47,7 +47,7 @@ btoi
 store 4
 load 3
 load 4
-callsub support_2
+callsub vote_2
 intc_1 // 1
 return
 main_l7:
@@ -97,10 +97,10 @@ return
 // create
 create_0:
 proto 0 0
-bytec 4 // "winning_proposal"
+bytec 5 // "winning_proposal"
 bytec_0 // ""
 app_global_put
-bytec_2 // "winning_proposal_votes"
+bytec_3 // "winning_proposal_votes"
 intc_0 // 0
 app_global_put
 retsub
@@ -131,7 +131,7 @@ frame_dig -2
 itob
 concat
 frame_bury 0
-bytec_1 // "p-"
+bytec_2 // "p-"
 frame_dig 0
 concat
 box_len
@@ -141,34 +141,36 @@ load 6
 intc_0 // 0
 ==
 assert
-bytec_1 // "p-"
+bytec_2 // "p-"
 frame_dig 0
 concat
 box_del
 pop
-bytec_1 // "p-"
+bytec_2 // "p-"
 frame_dig 0
 concat
 frame_dig -3
 box_put
 retsub
 
-// support
-support_2:
+// vote
+vote_2:
 proto 2 0
 intc_0 // 0
-dupn 2
+dupn 3
 bytec_0 // ""
 intc_0 // 0
 dup
 bytec_0 // ""
 dup
+intc_0 // 0
+frame_bury 3
 frame_dig -2
 frame_dig -1
 itob
 concat
-frame_bury 3
-bytec_1 // "p-"
+frame_bury 4
+bytec 4 // "h-"
 txn Sender
 concat
 box_len
@@ -178,52 +180,77 @@ load 8
 intc_0 // 0
 ==
 assert
-bytec_3 // "v-"
-frame_dig 3
+bytec_1 // "v-"
+frame_dig 4
 concat
-box_get
+box_len
 store 10
 store 9
 load 10
+intc_0 // 0
+==
+bnz vote_2_l3
+vote_2_l1:
+bytec_1 // "v-"
+frame_dig 4
+concat
+box_get
+store 12
+store 11
+load 12
 assert
-load 9
+load 11
 btoi
 frame_bury 1
 frame_dig 1
 intc_1 // 1
 +
 frame_bury 0
-bytec_3 // "v-"
-frame_dig 3
+bytec_1 // "v-"
+frame_dig 4
 concat
 box_del
 pop
-bytec_3 // "v-"
-frame_dig 3
+bytec_1 // "v-"
+frame_dig 4
 concat
 frame_dig 0
 itob
 box_put
 frame_dig 0
-bytec_2 // "winning_proposal_votes"
+bytec_3 // "winning_proposal_votes"
 app_global_get
 >
-bz support_2_l2
-bytec_2 // "winning_proposal_votes"
+bz vote_2_l4
+bytec_3 // "winning_proposal_votes"
 frame_dig 0
 app_global_put
-bytec 4 // "winning_proposal"
-frame_dig 3
+bytec 5 // "winning_proposal"
+frame_dig 4
 app_global_put
-support_2_l2:
+b vote_2_l4
+vote_2_l3:
+bytec_1 // "v-"
+frame_dig 4
+concat
+box_del
+pop
+bytec_1 // "v-"
+frame_dig 4
+concat
+frame_dig 3
+itob
+box_put
+b vote_2_l1
+vote_2_l4:
 intc_1 // 1
 frame_bury 2
-bytec 5 // "h-"
+bytec 4 // "h-"
 txn Sender
 concat
 box_del
 pop
-bytec 5 // "h-"
+bytec 4 // "h-"
 txn Sender
 concat
 pushbytes 0x00 // 0x00
@@ -238,15 +265,15 @@ mintnft_3:
 proto 1 0
 bytec_0 // ""
 dupn 5
-bytec_1 // "p-"
+bytec_2 // "p-"
 frame_dig -1
 concat
 box_get
-store 12
-store 11
-load 12
+store 14
+store 13
+load 14
 assert
-load 11
+load 13
 frame_bury 0
 frame_dig 0
 frame_dig 0
