@@ -100,8 +100,12 @@ buttons.submit.onclick = async () => {
     reserve: reserveInput.value,
   };
 
-  // TODO get current proposal ID
-  const proposalId = 0;
+  const proposalId = (await daoApp.getBoxNames()).filter(b => {
+    // filter out non proposal boxes
+    if (!b.name.startsWith('p-')) return false
+    // filter out proposals that aren't from the sender
+    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr
+  }).length;
 
   const proposalKeyType = algosdk.ABIType.from('(address,uint64)');
   const proposalKeyPrefix = new Uint8Array(Buffer.from('p-'));
