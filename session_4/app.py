@@ -59,7 +59,7 @@ def add_proposal(
         # Assert MBR payment is going to the contract
         Assert(mbr_payment.get().receiver() == Global.current_application_address()),
         # Get current MBR before adding proposal
-        #pre_mbr := AccountParam.minBalance(Global.current_application_address()),
+        # pre_mbr := AccountParam.minBalance(Global.current_application_address()),
         # Set proposal key
         addr.set(Txn.sender()),
         proposal_key.set(addr, proposal_id),
@@ -68,8 +68,8 @@ def add_proposal(
         # Not using .get() here because desc is already a abi.String
         dao.state.proposals[proposal_key].set(proposal),
         # Verify payment covers MBR difference
-        #current_mbr := AccountParam.minBalance(Global.current_application_address()),
-        #Assert(mbr_payment.get().amount() == current_mbr.value() - pre_mbr.value()),
+        # current_mbr := AccountParam.minBalance(Global.current_application_address()),
+        # Assert(mbr_payment.get().amount() == current_mbr.value() - pre_mbr.value()),
     )
 
 
@@ -104,6 +104,7 @@ def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
         dao.state.has_voted[Txn.sender()].set(true_value),
     )
 
+
 @dao.external
 def mint() -> Expr:
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
@@ -113,17 +114,19 @@ def mint() -> Expr:
         # Get the winning proposal key
         proposal_key.decode(dao.state.winning_proposal.get()),
         # Get the winning proposal
-        dao.state.proposals[proposal_key].store_into(proposal),   
-        # Call NFT minter    
+        dao.state.proposals[proposal_key].store_into(proposal),
+        # Call NFT minter
         InnerTxnBuilder.ExecuteMethodCall(
             app_id=Tmpl.Int("TMPL_MINTER_APP"),
             method_signature=f"mint_nft({NFTProposal().type_spec()})void",
-            args=[proposal]
-        ), 
-
+            args=[proposal],
+        ),
     )
 
+
 minter = Application("Minter")
+
+
 @minter.external
 def mint_nft(proposal: NFTProposal) -> Expr:
     name = abi.String()
@@ -156,4 +159,6 @@ def mint_nft(proposal: NFTProposal) -> Expr:
 
 if __name__ == "__main__":
     dao.build().export(Path(__file__).resolve().parent / f"./artifacts/{dao.name}")
-    minter.build().export(Path(__file__).resolve().parent / f"./artifacts/{minter.name}")
+    minter.build().export(
+        Path(__file__).resolve().parent / f"./artifacts/{minter.name}"
+    )
