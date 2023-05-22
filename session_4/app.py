@@ -40,15 +40,15 @@ class DAOState:
     )
 
 
-app = Application("BoxStorageDAO", state=DAOState)
+dao = Application("BoxStorageDAO", state=DAOState)
 
 
-@app.create(bare=True)
+@dao.create(bare=True)
 def create() -> Expr:
-    return app.initialize_global_state()
+    return dao.initialize_global_state()
 
 
-@app.external
+@dao.external
 def add_proposal(
     proposal: NFTProposal, proposal_id: abi.Uint64, mbr_payment: abi.PaymentTransaction
 ) -> Expr:
@@ -64,16 +64,16 @@ def add_proposal(
         addr.set(Txn.sender()),
         proposal_key.set(addr, proposal_id),
         # Check if the proposal already exists
-        Assert(app.state.proposals[proposal_key].exists() == Int(0)),
+        Assert(dao.state.proposals[proposal_key].exists() == Int(0)),
         # Not using .get() here because desc is already a abi.String
-        app.state.proposals[proposal_key].set(proposal),
+        dao.state.proposals[proposal_key].set(proposal),
         # Verify payment covers MBR difference
         #current_mbr := AccountParam.minBalance(Global.current_application_address()),
         #Assert(mbr_payment.get().amount() == current_mbr.value() - pre_mbr.value()),
     )
 
 
-@app.external
+@dao.external
 def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
     total_votes = abi.Uint64()
     current_votes = abi.Uint64()
@@ -85,41 +85,55 @@ def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
         zero_val.set(Int(0)),
         proposal_key.set(proposer, proposal_id),
         # Make sure we haven't voted yet
-        Assert(app.state.has_voted[Txn.sender()].exists() == Int(0)),
+        Assert(dao.state.has_voted[Txn.sender()].exists() == Int(0)),
         # Get current vote count
-        If(app.state.votes[proposal_key].exists() == Int(0)).Then(
-            app.state.votes[proposal_key].set(zero_val)
+        If(dao.state.votes[proposal_key].exists() == Int(0)).Then(
+            dao.state.votes[proposal_key].set(zero_val)
         ),
-        app.state.votes[proposal_key].store_into(current_votes),
+        dao.state.votes[proposal_key].store_into(current_votes),
         # Increment and save total vote count
         total_votes.set(current_votes.get() + Int(1)),
-        app.state.votes[proposal_key].set(total_votes),
+        dao.state.votes[proposal_key].set(total_votes),
         # Check if this proposal is now winning
-        If(total_votes.get() > app.state.winning_proposal_votes.get()).Then(
-            app.state.winning_proposal_votes.set(total_votes.get()),
-            app.state.winning_proposal.set(proposal_key.encode()),
+        If(total_votes.get() > dao.state.winning_proposal_votes.get()).Then(
+            dao.state.winning_proposal_votes.set(total_votes.get()),
+            dao.state.winning_proposal.set(proposal_key.encode()),
         ),
         # Set has_voted to true
         true_value.set(value=True),
-        app.state.has_voted[Txn.sender()].set(true_value),
+        dao.state.has_voted[Txn.sender()].set(true_value),
     )
 
-
-@app.external
+@dao.external
 def mint() -> Expr:
+    proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
     proposal = NFTProposal()
+
+    return Seq(
+        # Get the winning proposal key
+        proposal_key.decode(dao.state.winning_proposal.get()),
+        # Get the winning proposal
+        dao.state.proposals[proposal_key].store_into(proposal),   
+        # Call NFT minter    
+        InnerTxnBuilder.ExecuteMethodCall(
+            app_id=Tmpl.Int("TMPL_MINTER_APP"),
+            method_signature=f"mint_nft({NFTProposal().type_spec()})void",
+            args=[proposal]
+        ), 
+
+    )
+
+minter = Application("Minter")
+@minter.external
+def mint_nft(proposal: NFTProposal) -> Expr:
     name = abi.String()
     unit_name = abi.String()
     reserve = abi.Address()
     url = abi.String()
     metadata_hash = abi.make(abi.StaticArray[abi.Byte, Literal[32]])
-    proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
+    abi.make(abi.Tuple2[abi.Address, abi.Uint64])
 
     return Seq(
-        # Get the winning proposal key
-        proposal_key.decode(app.state.winning_proposal.get()),
-        # Get the winning proposal
-        app.state.proposals[proposal_key].store_into(proposal),
         # Get properties from proposal and mint NFT
         proposal.name.store_into(name),
         proposal.unit_name.store_into(unit_name),
@@ -141,4 +155,5 @@ def mint() -> Expr:
 
 
 if __name__ == "__main__":
-    app.build().export(Path(__file__).resolve().parent / "./artifacts")
+    dao.build().export(Path(__file__).resolve().parent / f"./artifacts/{dao.name}")
+    minter.build().export(Path(__file__).resolve().parent / f"./artifacts/{minter.name}")
