@@ -15,10 +15,8 @@ def deploy(app: Application, *, template_values: dict) -> int:
     app_client = application_client.ApplicationClient(
         algod_client=sandbox.get_algod_client(),
         app_spec=app.build(),
-        creator=sender.address,
         sender=sender.address,
         signer=sender.signer,
-        indexer_client=sandbox.get_indexer_client(),
         template_values=template_values,
     )
 
