@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import * as algokit from '@algorandfoundation/algokit-utils';
 import { ApplicationClient } from '@algorandfoundation/algokit-utils/types/app-client';
 import algosdk from 'algosdk';
@@ -151,6 +152,13 @@ buttons.vote.onclick = async () => {
     ...new Uint8Array(Buffer.from('p-')),
     ...encodedKey,
   ]);
+
+  const proposalBox = (await daoApp.getBoxNames()).find((b) => b.nameBase64 === Buffer.from(proposalKey).toString('base64'));
+
+  if (!proposalBox) {
+    alert('Proposal not found!');
+    return;
+  }
 
   const votesKey = new Uint8Array([
     ...new Uint8Array(Buffer.from('v-')),
