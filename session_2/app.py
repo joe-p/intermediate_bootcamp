@@ -106,19 +106,26 @@ def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
 
 
 @app.external
-def mint_nft(proposal_key: abi.Tuple2[abi.Address, abi.Uint64]) -> Expr:
+def mint() -> Expr:
     proposal = NFTProposal()
     name = abi.String()
     unit_name = abi.String()
     reserve = abi.Address()
     url = abi.String()
     metadata_hash = abi.make(abi.StaticArray[abi.Byte, Literal[32]])
+    proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
 
     return Seq(
+        # Get the winning proposal key
+        proposal_key.decode(app.state.winning_proposal.get()),
+        # Get the winning proposal
         app.state.proposals[proposal_key].store_into(proposal),
-        name.set(proposal.name),
-        unit_name.set(proposal.unit_name),
-        reserve.set(proposal.reserve),
+        # Get properties from proposal and mint NFT
+        proposal.name.store_into(name),
+        proposal.unit_name.store_into(unit_name),
+        proposal.reserve.store_into(reserve),
+        proposal.url.store_into(url),
+        proposal.metadata_hash.store_into(metadata_hash),
         InnerTxnBuilder.Execute(
             {
                 TxnField.type_enum: TxnType.AssetConfig,

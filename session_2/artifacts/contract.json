@@ -38,13 +38,8 @@
             }
         },
         {
-            "name": "mint_nft",
-            "args": [
-                {
-                    "type": "(address,uint64)",
-                    "name": "proposal_key"
-                }
-            ],
+            "name": "mint",
+            "args": [],
             "returns": {
                 "type": "void"
             }
