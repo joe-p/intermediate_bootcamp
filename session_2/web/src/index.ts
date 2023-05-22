@@ -26,7 +26,7 @@ const nameInput = document.getElementById('name') as HTMLInputElement;
 const unitNameInput = document.getElementById('unit') as HTMLInputElement;
 const reserveInput = document.getElementById('reserve') as HTMLInputElement;
 const proposerInput = document.getElementById('proposer') as HTMLInputElement;
-const idInput = document.getElementById('id') as HTMLInputElement
+const idInput = document.getElementById('id') as HTMLInputElement;
 
 const buttonIds = ['connect', 'create', 'submit', 'vote', 'mint'];
 const buttons: { [key: string]: HTMLButtonElement } = {};
@@ -100,11 +100,11 @@ buttons.submit.onclick = async () => {
     reserve: reserveInput.value,
   };
 
-  const proposalId = (await daoApp.getBoxNames()).filter(b => {
+  const proposalId = (await daoApp.getBoxNames()).filter((b) => {
     // filter out non proposal boxes
-    if (!b.name.startsWith('p-')) return false
+    if (!b.name.startsWith('p-')) return false;
     // filter out proposals that aren't from the sender
-    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr
+    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr;
   }).length;
 
   const proposalKeyType = algosdk.ABIType.from('(address,uint64)');
@@ -127,7 +127,7 @@ buttons.submit.onclick = async () => {
 
   const args = [Object.values(proposalObject), proposalId, { txn: payment, signer }];
 
-  proposerInput.value = sender.addr
+  proposerInput.value = sender.addr;
 
   await daoApp.call({
     method: 'add_proposal',
@@ -146,7 +146,7 @@ buttons.vote.onclick = async () => {
   };
 
   const proposalKeyType = algosdk.ABIType.from('(address,uint64)');
-  const encodedKey = proposalKeyType.encode([sender.addr, idInput.valueAsNumber])
+  const encodedKey = proposalKeyType.encode([sender.addr, idInput.valueAsNumber]);
   const proposalKey = new Uint8Array([
     ...new Uint8Array(Buffer.from('p-')),
     ...encodedKey,
@@ -162,34 +162,37 @@ buttons.vote.onclick = async () => {
     ...algosdk.decodeAddress(sender.addr).publicKey,
   ]);
 
-  const hasVoted = (await daoApp.getBoxNames()).find(b => {
+  const hasVoted = (await daoApp.getBoxNames()).find((b) => {
     // filter out non has_voted boxes
-    if (!b.name.startsWith('h-')) return false
+    if (!b.name.startsWith('h-')) return false;
     // filter out has_voted boxes that don't aren't for the sender
-    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr
+    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr;
   });
 
   if (hasVoted) {
-    alert('You have already voted!')
-    return
+    alert('You have already voted!');
+    return;
   }
-  
-  await daoApp.fundAppAccount(algokit.microAlgos(33400))
+
+  await daoApp.fundAppAccount(algokit.microAlgos(33400));
 
   await daoApp.call({
     method: 'vote',
-    methodArgs: {args: [proposerInput.value, idInput.valueAsNumber], boxes: [
-      {appIndex: 0, name: proposalKey},
-      {appIndex: 0, name: votesKey},
-      {appIndex: 0, name: hasVotedKey}
+    methodArgs: {
+      args: [proposerInput.value, idInput.valueAsNumber],
+      boxes: [
+        { appIndex: 0, name: proposalKey },
+        { appIndex: 0, name: votesKey },
+        { appIndex: 0, name: hasVotedKey },
 
-    ]},
-    sender
-  })
+      ],
+    },
+    sender,
+  });
 
   document.getElementById('status').innerHTML = `Vote submitted! See the app <a href='https://app.dappflow.org/explorer/application/${daoAppId}'>here</a>`;
-  buttons.mint.disabled = false
-}
+  buttons.mint.disabled = false;
+};
 
 buttons.mint.onclick = async () => {
   const sender = {
@@ -197,23 +200,25 @@ buttons.mint.onclick = async () => {
     signer,
   };
 
-  // @ts-ignore
-  const winningProposalKey = (await daoApp.getGlobalState()).winning_proposal.valueRaw as Uint8Array
+  const winningProposalKey = (await daoApp.getGlobalState())
+    .winning_proposal
+    // @ts-ignore
+    .valueRaw as Uint8Array;
 
   const proposalKey = new Uint8Array([
     ...new Uint8Array(Buffer.from('p-')),
     ...winningProposalKey,
   ]);
-  
-  await daoApp.fundAppAccount(algokit.algos(0.1))
-  
+
+  await daoApp.fundAppAccount(algokit.algos(0.1));
+
   await daoApp.call({
     method: 'mint',
-    sendParams: {fee: algokit.microAlgos(algosdk.ALGORAND_MIN_TX_FEE * 2)},
+    sendParams: { fee: algokit.microAlgos(algosdk.ALGORAND_MIN_TX_FEE * 2) },
     methodArgs: {
       args: [],
-      boxes: [{appIndex: 0, name: proposalKey}]
-  },
-    sender
-  })
-}
+      boxes: [{ appIndex: 0, name: proposalKey }],
+    },
+    sender,
+  });
+};
