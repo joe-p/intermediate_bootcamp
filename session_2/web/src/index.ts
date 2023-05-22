@@ -162,10 +162,20 @@ buttons.vote.onclick = async () => {
     ...algosdk.decodeAddress(sender.addr).publicKey,
   ]);
 
-  // TODO: Only send this if its the first vote
+  const hasVoted = (await daoApp.getBoxNames()).find(b => {
+    // filter out non has_voted boxes
+    if (!b.name.startsWith('h-')) return false
+    // filter out has_voted boxes that don't aren't for the sender
+    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr
+  });
+
+  if (hasVoted) {
+    alert('You have already voted!')
+    return
+  }
+  
   await daoApp.fundAppAccount(algokit.microAlgos(33400))
 
-  console.log('vote', proposalKey)
   await daoApp.call({
     method: 'vote',
     methodArgs: {args: [proposerInput.value, idInput.valueAsNumber], boxes: [
