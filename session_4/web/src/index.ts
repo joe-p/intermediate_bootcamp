@@ -2,7 +2,8 @@
 import * as algokit from '@algorandfoundation/algokit-utils';
 import { ApplicationClient } from '@algorandfoundation/algokit-utils/types/app-client';
 import algosdk from 'algosdk';
-import appspec from '../../artifacts/application.json';
+import daoAppSpec from '../../artifacts/DAO/application.json';
+import minterAppSpec from '../../artifacts/Minter/application.json'
 import PeraSession from './wallets/pera';
 
 declare let NETWORK : 'localnet' | 'testnet';
@@ -18,6 +19,7 @@ const kmdClient = NETWORK === 'localnet' ? new algosdk.Kmd('a'.repeat(64), 'http
 
 let daoAppId: number;
 let daoApp: ApplicationClient;
+let minterAppId: number;
 
 const accountsMenu = document.getElementById('accounts') as HTMLSelectElement;
 
@@ -65,21 +67,38 @@ buttons.create.onclick = async () => {
     signer,
   };
 
+  if (!minterAppId) {
+    console.log('Creating minter')
+    const minterApp = algokit.getAppClient(
+      {
+        app: JSON.stringify(minterAppSpec),
+        sender,
+        id: 0
+      },
+      algodClient,
+    );
+
+    await minterApp.create();
+    await minterApp.fundAppAccount(algokit.microAlgos(100_000))
+    minterAppId = (await minterApp.getAppReference()).appId;
+  }
+
   daoApp = algokit.getAppClient(
     {
-      app: JSON.stringify(appspec),
+      app: JSON.stringify(daoAppSpec),
       sender,
       creatorAddress: sender.addr,
       indexer: indexerClient,
+      name: `dao-${Date.now()}`
     },
     algodClient,
   );
 
-  const { appId, appAddress, transaction } = await daoApp.create();
+  const { appId, appAddress } = await daoApp.deploy({sender, deployTimeParams: {'MINTER_APP': minterAppId}});
 
   daoAppId = appId;
 
-  document.getElementById('status').innerHTML = `App created with id ${appId} and address ${appAddress} in tx ${transaction.txID()}. See it <a href='https://app.dappflow.org/explorer/application/${appId}'>here</a>`;
+  document.getElementById('status').innerHTML = `App created with id ${appId} and address ${appAddress}. See it <a href='https://app.dappflow.org/explorer/application/${appId}'>here</a>`;
 
   reserveInput.value = appAddress;
   buttons.submit.disabled = false;
@@ -218,15 +237,33 @@ buttons.mint.onclick = async () => {
     ...winningProposalKey,
   ]);
 
-  await daoApp.fundAppAccount(algokit.algos(0.1));
 
-  await daoApp.call({
-    method: 'mint',
-    sendParams: { fee: algokit.microAlgos(algosdk.ALGORAND_MIN_TX_FEE * 2) },
-    methodArgs: {
-      args: [],
-      boxes: [{ appIndex: 0, name: proposalKey }],
-    },
-    sender,
-  });
+  const atc = new algosdk.AtomicTransactionComposer();
+
+  atc.addTransaction({
+    txn: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      suggestedParams: await algodClient.getTransactionParams().do(),
+      from: sender.addr,
+      to: algosdk.getApplicationAddress(minterAppId),
+      amount: 100_000,
+    }), 
+    signer
+  })
+
+  atc.addMethodCall({
+    method: daoApp.getABIMethod('mint'),
+    suggestedParams: {...(await algodClient.getTransactionParams().do()), fee: 3_000, flatFee: true},
+    methodArgs: [minterAppId],
+    boxes: [{ appIndex: 0, name: proposalKey }],
+    sender: sender.addr,
+    signer,
+    appID: daoAppId,
+  })
+
+  await atc.execute(algodClient, 3);
+
+  document.getElementById('status').innerHTML = `NFT minted! See the app <a href='https://app.dappflow.org/explorer/application/${daoAppId}'>here</a>`;
+  buttons.mint.disabled = true
+  buttons.vote.disabled = true;
+  buttons.submit.disabled = true;
 };

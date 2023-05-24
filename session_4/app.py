@@ -40,7 +40,11 @@ class DAOState:
     )
 
 
-dao = Application("BoxStorageDAO", state=DAOState)
+###############
+# DAO Contract
+###############
+
+dao = Application("DAO", state=DAOState)
 
 
 @dao.create(bare=True)
@@ -59,7 +63,7 @@ def add_proposal(
         # Assert MBR payment is going to the contract
         Assert(mbr_payment.get().receiver() == Global.current_application_address()),
         # Get current MBR before adding proposal
-        # pre_mbr := AccountParam.minBalance(Global.current_application_address()),
+        pre_mbr := AccountParam.minBalance(Global.current_application_address()),
         # Set proposal key
         addr.set(Txn.sender()),
         proposal_key.set(addr, proposal_id),
@@ -68,8 +72,8 @@ def add_proposal(
         # Not using .get() here because desc is already a abi.String
         dao.state.proposals[proposal_key].set(proposal),
         # Verify payment covers MBR difference
-        # current_mbr := AccountParam.minBalance(Global.current_application_address()),
-        # Assert(mbr_payment.get().amount() == current_mbr.value() - pre_mbr.value()),
+        current_mbr := AccountParam.minBalance(Global.current_application_address()),
+        Assert(mbr_payment.get().amount() >= current_mbr.value() - pre_mbr.value()),
     )
 
 
@@ -106,7 +110,7 @@ def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
 
 
 @dao.external
-def mint() -> Expr:
+def mint(minter_app: abi.Application) -> Expr:
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
     proposal = NFTProposal()
 
@@ -123,6 +127,10 @@ def mint() -> Expr:
         ),
     )
 
+
+#####################
+# NFT Minter Contract
+#####################
 
 minter = Application("Minter")
 
