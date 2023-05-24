@@ -184,16 +184,14 @@ buttons.vote.onclick = async () => {
     ...encodedKey,
   ]);
 
-  const hasVotedKey = new Uint8Array([
-    ...new Uint8Array(Buffer.from('h-')),
-    ...algosdk.decodeAddress(sender.addr).publicKey,
-  ]);
+  const hasVotedKey = algosdk.decodeAddress(sender.addr).publicKey
+
 
   const hasVoted = (await daoApp.getBoxNames()).find((b) => {
     // filter out non has_voted boxes
-    if (!b.name.startsWith('h-')) return false;
+    if (b.nameRaw.byteLength !== 32) return false;
     // filter out has_voted boxes that don't aren't for the sender
-    return algosdk.encodeAddress(b.nameRaw.slice(2, 34)) === sender.addr;
+    return algosdk.encodeAddress(b.nameRaw) === sender.addr;
   });
 
   if (hasVoted) {

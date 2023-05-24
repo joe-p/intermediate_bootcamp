@@ -13,6 +13,7 @@ class NFTProposal(abi.NamedTuple):
     unit_name: abi.Field[abi.String]
     reserve: abi.Field[abi.Address]
 
+
 #####################
 # NFT Minter Contract
 #####################
@@ -47,8 +48,10 @@ def mint_nft(proposal: NFTProposal, *, output: abi.Uint64) -> Expr:
                 TxnField.fee: Int(0),
             }
         ),
-        output.set(InnerTxn.created_asset_id())
+        # Return created asset
+        output.set(InnerTxn.created_asset_id()),
     )
+
 
 class DAOState:
     # Global Storage
@@ -71,9 +74,7 @@ class DAOState:
         prefix=Bytes("v-"),
     )
 
-    has_voted = BoxMapping(
-        key_type=abi.Address, value_type=abi.Bool, prefix=Bytes("h-")
-    )
+    has_voted = BoxMapping(key_type=abi.Address, value_type=abi.Bool)
 
 
 ###############
@@ -161,7 +162,8 @@ def mint(minter_app: abi.Application, *, output: abi.Uint64) -> Expr:
             method_signature=f"mint_nft({NFTProposal().type_spec()})uint64",
             args=[proposal],
         ),
-        output.set(Btoi(Suffix(InnerTxn.last_log(), Int(4))))
+        # Return created asset
+        output.set(Btoi(Suffix(InnerTxn.last_log(), Int(4)))),
     )
 
 
