@@ -10,7 +10,7 @@
                 }
             ],
             "returns": {
-                "type": "void"
+                "type": "uint64"
             }
         }
     ],

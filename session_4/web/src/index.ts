@@ -260,9 +260,9 @@ buttons.mint.onclick = async () => {
     appID: daoAppId,
   })
 
-  await atc.execute(algodClient, 3);
+  const assetID = (await atc.execute(algodClient, 3)).methodResults[0].returnValue;
 
-  document.getElementById('status').innerHTML = `NFT minted! See the app <a href='https://app.dappflow.org/explorer/application/${daoAppId}'>here</a>`;
+  document.getElementById('status').innerHTML = `NFT minted! See the asset <a href='https://app.dappflow.org/explorer/asset/${assetID}'>here</a>`;
   buttons.mint.disabled = true
   buttons.vote.disabled = true;
   buttons.submit.disabled = true;

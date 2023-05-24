@@ -13,6 +13,42 @@ class NFTProposal(abi.NamedTuple):
     unit_name: abi.Field[abi.String]
     reserve: abi.Field[abi.Address]
 
+#####################
+# NFT Minter Contract
+#####################
+
+minter = Application("Minter")
+
+
+@minter.external
+def mint_nft(proposal: NFTProposal, *, output: abi.Uint64) -> Expr:
+    name = abi.String()
+    unit_name = abi.String()
+    reserve = abi.Address()
+    url = abi.String()
+    metadata_hash = abi.make(abi.StaticArray[abi.Byte, Literal[32]])
+    abi.make(abi.Tuple2[abi.Address, abi.Uint64])
+
+    return Seq(
+        # Get properties from proposal and mint NFT
+        proposal.name.store_into(name),
+        proposal.unit_name.store_into(unit_name),
+        proposal.reserve.store_into(reserve),
+        proposal.url.store_into(url),
+        proposal.metadata_hash.store_into(metadata_hash),
+        InnerTxnBuilder.Execute(
+            {
+                TxnField.type_enum: TxnType.AssetConfig,
+                TxnField.config_asset_name: name.get(),
+                TxnField.config_asset_unit_name: unit_name.get(),
+                TxnField.config_asset_reserve: reserve.get(),
+                TxnField.config_asset_url: url.get(),
+                TxnField.config_asset_metadata_hash: metadata_hash.encode(),
+                TxnField.fee: Int(0),
+            }
+        ),
+        output.set(InnerTxn.created_asset_id())
+    )
 
 class DAOState:
     # Global Storage
@@ -110,7 +146,7 @@ def vote(proposer: abi.Address, proposal_id: abi.Uint64) -> Expr:
 
 
 @dao.external
-def mint(minter_app: abi.Application) -> Expr:
+def mint(minter_app: abi.Application, *, output: abi.Uint64) -> Expr:
     proposal_key = abi.make(abi.Tuple2[abi.Address, abi.Uint64])
     proposal = NFTProposal()
 
@@ -122,46 +158,10 @@ def mint(minter_app: abi.Application) -> Expr:
         # Call NFT minter
         InnerTxnBuilder.ExecuteMethodCall(
             app_id=Tmpl.Int("TMPL_MINTER_APP"),
-            method_signature=f"mint_nft({NFTProposal().type_spec()})void",
+            method_signature=f"mint_nft({NFTProposal().type_spec()})uint64",
             args=[proposal],
         ),
-    )
-
-
-#####################
-# NFT Minter Contract
-#####################
-
-minter = Application("Minter")
-
-
-@minter.external
-def mint_nft(proposal: NFTProposal) -> Expr:
-    name = abi.String()
-    unit_name = abi.String()
-    reserve = abi.Address()
-    url = abi.String()
-    metadata_hash = abi.make(abi.StaticArray[abi.Byte, Literal[32]])
-    abi.make(abi.Tuple2[abi.Address, abi.Uint64])
-
-    return Seq(
-        # Get properties from proposal and mint NFT
-        proposal.name.store_into(name),
-        proposal.unit_name.store_into(unit_name),
-        proposal.reserve.store_into(reserve),
-        proposal.url.store_into(url),
-        proposal.metadata_hash.store_into(metadata_hash),
-        InnerTxnBuilder.Execute(
-            {
-                TxnField.type_enum: TxnType.AssetConfig,
-                TxnField.config_asset_name: name.get(),
-                TxnField.config_asset_unit_name: unit_name.get(),
-                TxnField.config_asset_reserve: reserve.get(),
-                TxnField.config_asset_url: url.get(),
-                TxnField.config_asset_metadata_hash: metadata_hash.encode(),
-                TxnField.fee: Int(0),
-            }
-        ),
+        output.set(Btoi(Suffix(InnerTxn.last_log(), Int(4))))
     )
 
 
