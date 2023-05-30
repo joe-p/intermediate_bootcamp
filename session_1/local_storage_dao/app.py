@@ -23,26 +23,30 @@ app = Application("LocalStorageDao", state=DAOState)
 def create() -> Expr:
     return app.initialize_global_state()
 
+@app.opt_in(bare=True)
+def opt_in() -> Expr:
+    return Approve()
+
 
 @app.external
 def add_proposal(desc: abi.String) -> Expr:
     return Seq(
-        Assert(Len(app.state.proposal[Txn.sender()].get()) == Int(0)),
+        Assert(app.state.proposal[Txn.sender()].get() == Int(0)),
         app.state.proposal[Txn.sender()].set(desc.get()),
     )
 
 
 @app.external
-def support(proposer: abi.Address) -> Expr:
+def support(proposer: abi.Account) -> Expr:
     total_votes = ScratchVar(TealType.uint64)
 
     return Seq(
         Assert(app.state.has_voted[Txn.sender()].get() == Int(0)),
-        total_votes.store(app.state.votes[proposer.get()] + Int(1)),
-        app.state.votes[proposer.get()].set(total_votes.load()),
+        total_votes.store(app.state.votes[proposer.address()] + Int(1)),
+        app.state.votes[proposer.address()].set(total_votes.load()),
         If(total_votes.load() > app.state.winning_proposal_votes.get()).Then(
             app.state.winning_proposal_votes.set(total_votes.load()),
-            app.state.winning_proposal.set(proposer.get()),
+            app.state.winning_proposal.set(proposer.address()),
         ),
         app.state.has_voted[Txn.sender()].set(Int(1)),
     )

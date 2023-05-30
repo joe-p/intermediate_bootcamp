@@ -46,12 +46,13 @@ def support(proposer: abi.Address) -> Expr:
     total_votes = abi.Uint64()
     current_votes = abi.Uint64()
     true_value = abi.Bool()
+    zero_val = abi.Uint64()
 
     return Seq(
         # Make sure we haven't voted yet
-        Assert(app.state.proposals[Txn.sender()].exists() == Int(0)),
+        Assert(app.state.has_voted[Txn.sender()].exists() == Int(0)),
         # Get current vote count
-        app.state.votes[proposer].store_into(current_votes),
+        If(app.state.votes[proposer].exists()).Then(app.state.votes[proposer].store_into(current_votes)),
         # Increment and save total vote count
         total_votes.set(current_votes.get() + Int(1)),
         app.state.votes[proposer].set(total_votes),
